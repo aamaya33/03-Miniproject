@@ -10,3 +10,6 @@ The reason that introduced was because I found it annoying that I couldn't reall
 ### Running Wokwi
 - run `pip install mpremote`
 - when simulator is running, open a command prompt and type `python -m mpremote connect port:rfc2217://localhost:4000 run main.py`
+
+### Modifying the diagram.json file 
+This is extremely annoying since they have this interactive editor that just doesn't work and is behind a paywall. To be able to access the json file directly, you'll need to change it from `diagram.json` to anything else (e.g. `diagrams.json`) and make your changes there. 
