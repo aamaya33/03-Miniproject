@@ -22,8 +22,6 @@ buzzer_pin = machine.PWM(machine.Pin(18))
 api_note_task = None
 
 # --- Core Functions ---
-
-
 def connect_to_wifi(wifi_config: str = "wifi_config.json"):
     """Connects the Pico W to the specified Wi-Fi network.
 
@@ -133,7 +131,25 @@ async def handle_request(reader, writer):
         </html>
         """
         response = html
-    elif method == "POST" and url == "/play_note":
+    elif method == "GET" and url == "/health":
+        device_id = "pico-w-A1B2C3D4E5F6" # hardcoded for stub
+        response = json.dumps({
+            "status": "ok",
+            "device_id": device_id,
+            "api": "1.0.0"
+        })
+        content_type = "application/json"
+    elif method == "GET" and url == "/sensor":
+        raw = light_value,
+        norm = raw / 65535 # 16-bit ADC
+        lux_est = norm * 500 # 500 is max_lux, which is chosen value
+        response = json.dumps({
+            "raw": raw,
+            "norm": norm,
+            "lux_est": lux_est
+        })
+        content_type = "application/json"
+    elif method == "POST" and url == "/tone":
         # This requires reading the request body, which is not trivial.
         # A simple approach for a known content length:
         # Note: A robust server would parse Content-Length header.
@@ -151,7 +167,10 @@ async def handle_request(reader, writer):
             # Start the new note as a background task
             api_note_task = asyncio.create_task(play_api_note(freq, duration))
 
-            response = '{"status": "ok", "message": "Note playing started."}'
+            response = json.dumps({
+                "playing": True,
+                "until_ms_from_now": duration
+            })
             content_type = "application/json"
         except (ValueError, json.JSONDecodeError):
             writer.write(b'HTTP/1.0 400 Bad Request\r\n\r\n{"error": "Invalid JSON"}\r\n')
@@ -159,7 +178,6 @@ async def handle_request(reader, writer):
             writer.close()
             await writer.wait_closed()
             return
-
     elif method == "POST" and url == "/stop":
         if api_note_task:
             api_note_task.cancel()
@@ -167,6 +185,39 @@ async def handle_request(reader, writer):
         stop_tone()  # Force immediate stop
         response = '{"status": "ok", "message": "All sounds stopped."}'
         content_type = "application/json"
+    elif method == "POST" and url == "/melody": # written with Copilot and altered slightly
+        raw_data = await reader.read(2048)
+        try:
+            data = json.loads(raw_data)
+            notes = data.get("notes", [])
+            gap_ms = data.get("gap_ms", 20)
+
+            if api_note_task:
+                api_note_task.cancel()
+                api_note_task = None
+
+            async def play_melody(notes, gap_ms):
+                for note in notes:
+                    freq = note.get("freq", 0)
+                    ms = note.get("ms", 0)
+                    if freq > 0 and ms > 0:
+                        buzzer_pin.freq(freq)
+                        buzzer_pin.duty_u16(32768)
+                        await asyncio.sleep_ms(ms)
+                        buzzer_pin.duty_u16(0)
+                    await asyncio.sleep_ms(gap_ms)
+                buzzer_pin.duty_u16(0)
+
+            api_note_task = asyncio.create_task(play_melody(notes, gap_ms))
+
+            response = json.dumps({"queued": len(notes)})
+            content_type = "application/json"
+        except (ValueError, json.JSONDecodeError):
+            writer.write(b'HTTP/1.0 400 Bad Request\r\n\r\n{"error": "Invalid JSON"}\r\n')
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+            return
     else:
         writer.write(b"HTTP/1.0 404 Not Found\r\n\r\n")
         await writer.drain()

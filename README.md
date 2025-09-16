@@ -18,6 +18,92 @@ using
 Other IDE can be used, including Visual Studio Code or
 [rshell](./doc/rshell.md).
 
+## Project Setup
+
+### Software/Circuitry
+1. Connect the Pico 2W to the Raspberry Pi Pico breakout board 
+2. After launching Thonny IDE, hold the BOOTSEL button on your Raspberry Pi while plugging the micro-USB cable.
+3. Install the MicroPython Firmware on the Pico, check to make sure the interpreter is set to Pico 2W specifically. 
+ 
+#### Photoresistor (Light Sensor)
+Given a photoresistor and a 10k ohm resistor, wiring the photoresistor to GND and GP28 and the resistor to GP28 and 3V3 power source forms a voltage divider. 
+
+The voltage divider dictates the output voltage, which depends on the ratio of the two resistors. As light increases, the resistance of the photoresistor decreases, changing the voltage at GP28. The ADC (analog to digital converter) then measures that voltage and determines the light level based on the observed value. j
+
+The ADC reading is a 16-bit value from 0-65535, proportional to light intensity. 
+
+```
+photo_sensor_pin = ADC(28)
+
+light_value = photo_sensor_pin.read_u16()
+
+frequency = map_value(clamped_light, min_light, max_light,
+                              min_freq, max_freq)  
+```
+
+#### Piezo Buzzer (Sound Output) 
+PWM (Pulse Width Modulation) can be used to generate square waves at specific frequencies, which correspond to different musical notes at various duty cycles. 
+
+```
+from machine import Pin, PWM
+import time
+
+buzzer_pin = PWM(Pin(16))
+
+volume = map_value(clamped_light, min_light, max_light,
+                              min_vol, max_vol)
+```
+
+The map_value function as mentioned above, returns the frequency or duty cycle outputs based on light input. While stop_tone turns the duty cycle to 0. 
+
+```
+def stop_tone():
+    buzzer_pin.duty_u16(0)
+
+def map_value(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+```
+
+#### Two Modes: Volume and Frequency
+The hardware can operate in two different modes, controlled by the mode argument passed to main(). 
+
+1. Volume main(mode="volume")
+- The level of light controls the volume.
+- The pitch is fixed at C4.
+
+```
+def volume_control(min_light, max_light, light_value):
+    min_vol = 1000
+    max_vol = 32768
+    clamped = max(min_light, min(light_value, max_light))
+
+    if clamped > min_light:
+        volume = map_value(clamped, min_light, max_light, min_vol, max_vol)
+        buzzer_pin.freq(261)          # Fixed pitch (C4) 
+        buzzer_pin.duty_u16(volume)   # varied volume
+    else:
+        buzzer_pin.duty_u16(0)        # Silence
+```
+
+2. Frequency Mode main(mode="freq")
+- Light level controls pitch.
+- Volume is fixed at 50%.
+- Pitch ranges from C4 to C6.
+
+```
+def freq_control(min_light, max_light, light_value):
+    min_freq = 261    # C4
+    max_freq = 1046   # C6
+    clamped = max(min_light, min(light_value, max_light))
+
+    if clamped > min_light:
+        frequency = map_value(clamped, min_light, max_light, min_freq, max_freq)
+        buzzer_pin.freq(frequency)
+        buzzer_pin.duty_u16(32768)    # Fixed loudness
+    else:
+        buzzer_pin.duty_u16(0)
+```
+
 ## Hardware
 
 * Raspberry Pi Pico WH [SC1634](https://pip.raspberrypi.com/categories/1088-raspberry-pi-pico-2-w) (WiFi, Bluetooth, with header pins)
