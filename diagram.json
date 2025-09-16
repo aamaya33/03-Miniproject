@@ -12,17 +12,17 @@
       "attrs": { "env": "micropython-latest" }
     },
     {
-      "type": "wokwi-photoresistor",
+      "type": "wokwi-photoresistor-sensor",
       "id": "ldr1",
-      "top": 30,
-      "left": 250,
+      "top": 350,
       "attrs": { "name": "LDR" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r1",
-      "top": 70,
-      "left": 250,
+      "top": 250,
+      "left": 200,
+      "rotate": 180,
       "attrs": { "value": "10k" }
     },
     {
@@ -32,36 +32,19 @@
       "left": 50,
       "rotate": 180,
       "attrs": { "name": "Buzzer" }
-    },
-    {
-      "type": "wokwi-pushbutton",
-      "id": "btn1",
-      "top": 40,
-      "left": 60,
-      "attrs": { "color": "green", "label": "Start" }
-    },
-    {
-      "type": "wokwi-pushbutton",
-      "id": "btn2",
-      "top": 120,
-      "left": 60,
-      "attrs": { "color": "red", "label": "Stop" }
     }
   ],
   "connections": [
-    [ "pico:3V3", "ldr1:1", "red", [ "h40" ] ],
-    [ "ldr1:2", "r1:1", "yellow", [] ],
-    [ "r1:2", "pico:GND.2", "black", [ "v40", "h-120" ] ],
+    [ "pico:3V3", "r1:1", "red", [ "*" ] ],
+    [ "r1:2", "pico:GP28", "yellow", [ "*" ] ],
+    
+    [ "pico:GP28", "ldr1:1", "green", [ "h-40", "v60", "h-60" ] ],
+    [ "ldr1:2", "pico:AGND", "black", [ "v40", "h-120" ] ],
 
-    [ "ldr1:2", "pico:GP26", "green", [ "h-40", "v60", "h-60" ] ],
+    [ "pico:GND.5", "buzz1:1", "black", [ "*" ] ],
+    [ "buzz1:2", "pico:GP16", "red", [ "*" ] ],
 
-    [ "pico:GP18", "buzz1:1", "black", [ "*" ] ],
-    [ "buzz1:2", "pico:GND.5", "red", [ "*" ] ],
-
-    [ "btn1:1", "pico:GND.4", "black", [ "h20", "v60" ] ],
-    [ "btn1:2", "pico:GP14", "blue", [ "h40" ] ],
-
-    [ "btn2:1", "pico:GND.4", "black", [ "h10", "v-40" ] ],
-    [ "btn2:2", "pico:GP15", "purple", [ "h40" ] ]
+    [ "ldr1:VCC", "pico:GP28", "green", [ "*" ] ],
+    [ "ldr1:GND", "pico:GND.7", "black", [ "*" ] ]
   ]
 }
