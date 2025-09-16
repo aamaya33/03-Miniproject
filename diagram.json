@@ -46,6 +46,6 @@
 
     [ "ldr1:VCC", "pico:3V3", "red", [ "*" ] ],
     [ "ldr1:GND", "pico:GND.7", "black", [ "*" ] ],
-    [ "ldr1:AO", "pico:GP28", "yellow", [ "*" ] ]
+    [ "ldr1:AO", "pico:GP28", "green", [ "*" ] ]
   ]
 }
