@@ -20,7 +20,6 @@ def volume_control(min_light, max_light, light_value):
     if clamped_light > min_light:
         volume = map_value(clamped_light, min_light, max_light,
                               min_vol, max_vol)
-        print(volume)
         buzzer_pin.freq(261)
         buzzer_pin.duty_u16(volume)  # 50% duty cycle
     else:
@@ -44,14 +43,14 @@ def main(mode):
         while True:
             # Read the sensor (0–65535)
             light_value = photo_sensor_pin.read_u16()
-            print(light_value)
             # Clamp and map
             min_light = 1000
             max_light = 65000
             if mode== "volume":
                 volume_control(min_light,max_light, light_value)
-            elif mode=="freq":
+            else: # default to frequency if mode is not set to volume 
                 freq_control(min_light,max_light,light_value)
+            
 
             time.sleep_ms(50)
 
