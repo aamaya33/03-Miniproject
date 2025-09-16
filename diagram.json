@@ -9,7 +9,7 @@
       "top": 80,
       "left": 120,
       "rotate": 90,
-      "attrs": { "env": "micropython-latest" }
+      "attrs": { "env": "arduino-community" }
     },
     {
       "type": "wokwi-photoresistor-sensor",
