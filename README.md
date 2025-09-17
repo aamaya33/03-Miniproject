@@ -79,9 +79,8 @@ def volume_control(min_light, max_light, light_value):
     clamped = max(min_light, min(light_value, max_light))
 
     if clamped > min_light:
+        global volume
         volume = map_value(clamped, min_light, max_light, min_vol, max_vol)
-        buzzer_pin.freq(261)          # Fixed pitch (C4) 
-        buzzer_pin.duty_u16(volume)   # varied volume
     else:
         buzzer_pin.duty_u16(0)        # Silence
 ```
