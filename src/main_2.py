@@ -12,7 +12,33 @@ def stop_tone():
 def map_value(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
-def main():
+
+def volume_control(min_light, max_light, light_value):
+    min_vol=1000
+    max_vol=32768
+    clamped_light = max(min_light, min(light_value, max_light))
+    if clamped_light > min_light:
+        volume = map_value(clamped_light, min_light, max_light,
+                              min_vol, max_vol)
+        buzzer_pin.freq(261)
+        buzzer_pin.duty_u16(volume)  # 50% duty cycle
+    else:
+        stop_tone()
+        
+def freq_control(min_light, max_light, light_value):
+    min_freq = 261   # C4
+    max_freq = 1046  # C6
+    clamped_light = max(min_light, min(light_value, max_light))
+
+    if clamped_light > min_light:
+        frequency = map_value(clamped_light, min_light, max_light,
+                              min_freq, max_freq)
+        buzzer_pin.freq(frequency)
+        buzzer_pin.duty_u16(32768)  # 50% duty cycle
+    else:
+        stop_tone()
+                
+def main(mode):
     try:
         while True:
             # Read the sensor (0–65535)
@@ -20,17 +46,11 @@ def main():
             # Clamp and map
             min_light = 1000
             max_light = 65000
-            min_freq = 261   # C4
-            max_freq = 1046  # C6
-            clamped_light = max(min_light, min(light_value, max_light))
-
-            if clamped_light > min_light:
-                frequency = map_value(clamped_light, min_light, max_light,
-                                      min_freq, max_freq)
-                buzzer_pin.freq(frequency)
-                buzzer_pin.duty_u16(32768)  # 50% duty cycle
-            else:
-                stop_tone()
+            if mode== "volume":
+                volume_control(min_light,max_light, light_value)
+            else: # default to frequency if mode is not set to volume 
+                freq_control(min_light,max_light,light_value)
+            
 
             time.sleep_ms(50)
 
@@ -39,4 +59,4 @@ def main():
         print("Stopped.")
 
 # Run main loop
-main()
+main(mode="volume")
