@@ -68,8 +68,9 @@ def map_value(x, in_min, in_max, out_min, out_max):
 The hardware can operate in two different modes, controlled by the mode argument passed to main(). 
 
 1. Volume main(mode="volume")
-- The level of light controls the volume.
-- The pitch is fixed at C4.
+- The level of light controls the volume. A brighter light level lowers the volume.
+- The pitch is modulated to the tune of "Twinkle Twinkle Little Star."
+- See an example of volume mode [here](https://drive.google.com/file/d/1fm6gHLpvCDpJNjy5oRp4q0sUcNiw9mwe/view?usp=sharing)
 
 ```
 def volume_control(min_light, max_light, light_value):
@@ -89,6 +90,7 @@ def volume_control(min_light, max_light, light_value):
 - Light level controls pitch.
 - Volume is fixed at 50%.
 - Pitch ranges from C4 to C6.
+- See an example of frequency mode [here](https://drive.google.com/file/d/1pfGwG24YXPZGF0LfyjeGqt3t_GSveV5C/view?usp=sharing)
 
 ```
 def freq_control(min_light, max_light, light_value):
